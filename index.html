@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>Science Genius</title>
+<style>
+:root{--bg:#080c18;--card:#11182a;--card2:#18223a;--text:#f4f7ff;--muted:#9ca9c5;--accent:#78a9ff;--good:#54d68a;--bad:#ff6874;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#080c18,#0e1425 55%,#080c18);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;min-height:100vh}
+button{font:inherit;color:inherit;border:0;cursor:pointer} .app{max-width:720px;margin:auto;padding:env(safe-area-inset-top) 16px calc(92px + env(safe-area-inset-bottom))}
+header{padding:24px 4px 12px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:900;font-size:25px;letter-spacing:-.7px}.brand span{color:var(--accent)}.stats{font-size:13px;color:var(--gold);font-weight:800}
+.view{display:none}.view.active{display:block}.hero{padding:20px 4px}.hero h1{font-size:36px;line-height:1.02;margin:0 0 10px;letter-spacing:-1.5px}.hero p{color:var(--muted);margin:0;line-height:1.45}
+.card{background:rgba(17,24,42,.92);border:1px solid #22304c;border-radius:22px;padding:18px;margin:12px 0;box-shadow:0 14px 40px rgba(0,0,0,.18)}.card h2,.card h3{margin:0 0 8px}.small{font-size:13px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.subject{padding:17px;border-radius:18px;background:var(--card2);border:1px solid #263654;text-align:left}.subject b{display:block;margin-top:8px}.subject small{color:var(--muted)}
+.primary{width:100%;padding:16px;border-radius:16px;background:var(--accent);color:#08101e;font-weight:900;margin-top:12px}.secondary{padding:12px 14px;border-radius:14px;background:#202d49;font-weight:800}
+.progress{height:9px;background:#202a40;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#9c8cff);border-radius:99px}
+.q{font-size:22px;line-height:1.22;font-weight:850;margin:12px 0 16px}.answers{display:grid;gap:10px}.answer{padding:15px;text-align:left;border-radius:15px;background:#1a2540;border:1px solid #2a3a5e}.answer.good{background:#123925;border-color:var(--good)}.answer.bad{background:#3a1820;border-color:var(--bad)}
+.feedback{padding:12px 14px;border-radius:14px;margin-top:12px;line-height:1.4}.feedback.good{background:#102d20;color:#b9ffd5}.feedback.bad{background:#33151c;color:#ffc3c8}
+.tabs{position:fixed;z-index:5;left:0;right:0;bottom:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:rgba(7,11,22,.92);backdrop-filter:blur(18px);border-top:1px solid #1d2940;display:flex;justify-content:center}.tabs-inner{width:min(720px,100%);display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.tab{background:transparent;color:#8190ad;padding:8px 4px;border-radius:13px;font-size:11px;font-weight:800}.tab.active{background:#1b2944;color:white}.icon{font-size:20px;display:block;margin-bottom:2px}
+.flash{min-height:240px;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;border-radius:20px;background:linear-gradient(145deg,#17233c,#10192d);border:1px solid #2a3a5e}.flash h2{font-size:28px}.tag{display:inline-block;padding:5px 9px;border-radius:99px;background:#1d2c49;color:#a9c7ff;font-size:11px;font-weight:900}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.list{display:grid;gap:9px}.fact{padding:13px 14px;background:#121c30;border-radius:15px}.fact b{display:block;margin-bottom:3px}
+canvas{width:100%;height:170px;background:#0d1527;border-radius:17px}.hidden{display:none!important}
+@media(min-width:650px){.grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand">SCIENCE <span>GENIUS</span></div><div class="stats">⚡ <span id="xp">0</span> XP</div></header>
+
+<section id="learn" class="view active">
+<div class="hero"><h1>Train your brain.<br>Master science.</h1><p>An endless learning loop across the sciences. Learn a concept, retrieve it, play a challenge, then level up.</p></div>
+<div class="card"><div class="row"><div><b>Daily mastery</b><div class="small"><span id="level">Level 1</span> · <span id="streak">0</span> day streak</div></div><b id="pct">0%</b></div><div class="progress" style="margin-top:12px"><i id="bar" style="width:0%"></i></div><button class="primary" onclick="startQuiz()">Start endless lesson →</button></div>
+<h3 style="margin:22px 4px 10px">Choose a universe</h3><div class="grid" id="subjects"></div>
+<div class="card"><h3>⚡ Random fact</h3><div id="fact"></div><button class="secondary" onclick="newFact()">Another fact</button></div>
+</section>
+
+<section id="quiz" class="view">
+<div class="row"><button class="secondary" onclick="show('learn')">← Back</button><span class="tag" id="quizTag">SCIENCE</span></div>
+<div class="card"><div class="small">Question <span id="qnum">1</span> · +10 XP</div><div class="q" id="question"></div><div class="answers" id="answers"></div><div id="feedback"></div><button class="primary hidden" id="next" onclick="nextQuestion()">Next →</button></div>
+</section>
+
+<section id="flashcards" class="view">
+<div class="hero"><h1>Flashcards</h1><p>Active recall beats rereading. Tap the card to reveal the answer.</p></div>
+<div class="card"><div class="small" id="fcTag"></div><div class="flash" id="flash" onclick="flipCard()"><div><h2 id="fcFront"></h2><p class="small">Tap to reveal</p></div></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="prevCard()">←</button><button class="secondary" onclick="shuffleCard()">Shuffle</button><button class="secondary" onclick="nextCard()">→</button></div></div>
+</section>
+
+<section id="games" class="view">
+<div class="hero"><h1>Brain games</h1><p>Fast challenges designed around recall, classification, and scientific reasoning.</p></div>
+<div class="card"><div class="row"><div><h3>⚡ Rapid Fire</h3><div class="small">Answer as many as you can in 60 seconds.</div></div><button class="secondary" onclick="startRapid()">Play</button></div><div id="rapidArea" class="hidden"></div></div>
+<div class="card"><h3>🧪 Element Sprint</h3><div class="small">Match an element to its symbol.</div><button class="primary" onclick="startElements()">Start</button><div id="elementArea"></div></div>
+</section>
+
+<section id="progress" class="view">
+<div class="hero"><h1>Your lab notebook</h1><p>Track what you've learned and where your knowledge is growing.</p></div>
+<div class="card"><div class="row"><b>Total XP</b><b id="xp2">0</b></div><div class="row" style="margin-top:12px"><b>Level</b><b id="level2">1</b></div><div class="row" style="margin-top:12px"><b>Questions answered</b><b id="answered">0</b></div><div class="row" style="margin-top:12px"><b>Correct</b><b id="correct">0</b></div></div>
+<div class="card"><h3>Subject mastery</h3><div id="mastery"></div></div>
+</section>
+</div>
+
+<nav class="tabs"><div class="tabs-inner">
+<button class="tab active" data-view="learn"><span class="icon">🧠</span>Learn</button>
+<button class="tab" data-view="flashcards"><span class="icon">🗂️</span>Cards</button>
+<button class="tab" data-view="games"><span class="icon">🎮</span>Games</button>
+<button class="tab" data-view="progress"><span class="icon">📈</span>Progress</button>
+</div></nav>
+
+<script>
+const data={
+Biology:{
+icon:"🧬",facts:["Mitochondria have their own DNA.","The human body contains trillions of cells.","Your small intestine is several meters long.","DNA uses four bases: A, T, C, and G."],
+qs:[
+["What organelle is primarily responsible for ATP production?","Mitochondrion",["Ribosome","Nucleus","Golgi apparatus"],"Cellular respiration in mitochondria produces most ATP in eukaryotic cells."],
+["Which molecule carries genetic instructions?","DNA",["ATP","Glucose","Collagen"],"DNA stores hereditary information."],
+["What process makes two genetically similar daughter cells?","Mitosis",["Meiosis","Fertilization","Transcription"],"Mitosis separates duplicated chromosomes into daughter cells."],
+["Which blood cells specialize in oxygen transport?","Red blood cells",["Platelets","Neurons","Osteocytes"],"Hemoglobin inside red blood cells binds oxygen."],
+["What is the basic unit of life?","The cell",["The organ","The atom","The tissue"],"Cells are the smallest units considered fully alive."]
+]},
+Chemistry:{
+icon:"⚗️",facts:["Water expands when it freezes because hydrogen bonding creates an open crystal structure.","A catalyst changes reaction rate without being consumed overall.","The periodic table is arranged by atomic number.","A neutral atom has equal numbers of protons and electrons."],
+qs:[
+["What determines an element's atomic number?","Number of protons",["Number of neutrons","Number of shells","Number of bonds"],"Atomic number is defined by proton count."],
+["What is the pH of a neutral solution at 25°C?","7",["0","5","14"],"At 25°C, pure water has pH 7."],
+["Which particle has a negative charge?","Electron",["Proton","Neutron","Nucleus"],"Electrons carry negative electric charge."],
+["What type of bond involves sharing electrons?","Covalent",["Ionic","Metallic","Nuclear"],"Covalent bonds form when atoms share electron pairs."],
+["What is the chemical formula for water?","H₂O",["CO₂","O₂","NaCl"],"Each water molecule contains two hydrogen atoms and one oxygen atom."]
+]},
+"Earth Science":{
+icon:"🌎",facts:["Earth's inner core is solid despite extreme temperature because pressure is enormous.","Most weather occurs in the troposphere.","Ocean tides are strongly influenced by the Moon's gravity.","Earth's magnetic field is generated largely by motion in its liquid outer core."],
+qs:[
+["Which layer is Earth's outermost solid layer?","Crust",["Outer core","Mantle","Inner core"],"The crust is the thin rocky outer layer."],
+["What mainly drives Earth's seasons?","Axial tilt",["Distance from the Sun","Moon phases","Ocean currents"],"Earth's ~23.5° axial tilt changes sunlight angle and day length."],
+["What instrument measures earthquake ground motion?","Seismometer",["Barometer","Anemometer","Hygrometer"],"Seismometers detect and record seismic waves."],
+["Which gas is most abundant in Earth's atmosphere?","Nitrogen",["Oxygen","Carbon dioxide","Argon"],"Nitrogen makes up about 78% of dry air."],
+["What rock forms from cooled molten material?","Igneous",["Sedimentary","Metamorphic","Organic"],"Magma or lava cools and solidifies to form igneous rock."]
+]},
+Physics:{
+icon:"⚛️",facts:["Light in vacuum travels about 300,000 km/s.","Acceleration is the rate of change of velocity.","Momentum depends on both mass and velocity.","Energy can change form while total energy is conserved in an isolated system."],
+qs:[
+["What is Newton's second law commonly written as?","F = ma",["E = mc²","V = IR","p = mv²"],"Net force equals mass times acceleration."],
+["What happens to an object's acceleration if net force doubles while mass stays constant?","It doubles",["It halves","It stays the same","It becomes zero"],"From a = F/m, doubling F doubles a."],
+["Which quantity is measured in joules?","Energy",["Force","Current","Pressure"],"The joule is the SI unit of energy."],
+["What is velocity?","Speed with direction",["Distance only","Acceleration only","Mass per volume"],"Velocity is a vector: magnitude plus direction."],
+["What does gravity do near Earth's surface?","Accelerates falling objects downward",["Stops all motion","Creates mass","Eliminates friction"],"Ignoring air resistance, objects accelerate downward at about 9.8 m/s²."]
+]},
+Forensics:{
+icon:"🔎",facts:["Fingerprints form before birth and are highly variable.","DNA profiling compares patterns in genetic material.","Forensic conclusions should be based on evidence and validated methods.","A control sample helps investigators interpret test results."],
+qs:[
+["What is a chain of custody?","A documented record of evidence handling",["A DNA sequence","A fingerprint pattern","A type of microscope"],"It tracks who collected, stored, transferred, and examined evidence."],
+["What does STR stand for in forensic DNA analysis?","Short tandem repeat",["Single tissue reaction","Standard trace record","Sample transfer ratio"],"STRs are repeating DNA regions commonly used for identification."],
+["Why are controls used in forensic testing?","To help detect contamination or procedural problems",["To change DNA","To guarantee a match","To replace evidence"],"Controls provide reference conditions for interpreting tests."],
+["What is class evidence?","Evidence associated with a group rather than one unique source",["Evidence from a classroom","Evidence that is always DNA","Evidence with no value"],"Examples can include some fiber or material characteristics."]
+]},
+Astronomy:{
+icon:"🚀",facts:["A light-year is a distance, not a unit of time.","The Sun contains most of the Solar System's mass.","Neutron stars can pack more mass than the Sun into a city-sized object.","We see distant galaxies as they were in the past because their light took time to reach us."],
+qs:[
+["What is a light-year?","A unit of distance",["A unit of time","A unit of mass","A unit of temperature"],"It is the distance light travels in one year."],
+["What force keeps planets in orbit around the Sun?","Gravity",["Magnetism","Friction","Buoyancy"],"The Sun's gravity bends planetary motion into orbits."],
+["What is the largest planet in our Solar System?","Jupiter",["Saturn","Earth","Neptune"],"Jupiter is the largest by diameter and mass."],
+["What is a galaxy?","A huge gravitationally bound system of stars, gas, dust, and dark matter",["A single star","A planet's atmosphere","A comet tail"],"Galaxies contain enormous numbers of stars and other matter."]
+]}
+};
+const elements=[["Hydrogen","H"],["Helium","He"],["Carbon","C"],["Nitrogen","N"],["Oxygen","O"],["Sodium","Na"],["Chlorine","Cl"],["Iron","Fe"],["Copper","Cu"],["Gold","Au"],["Silver","Ag"],["Calcium","Ca"],["Potassium","K"],["Magnesium","Mg"],["Silicon","Si"]];
+let state=JSON.parse(localStorage.scienceGenius||'{"xp":0,"answered":0,"correct":0,"streak":0,"last":"","mastery":{}}');
+let currentSubject="Biology", qIndex=0, flashIndex=0, flipped=false, rapidTimer=null, rapidLeft=60, elementCurrent=null;
+
+function save(){localStorage.scienceGenius=JSON.stringify(state);updateUI()}
+function updateUI(){
+ document.getElementById("xp").textContent=state.xp;document.getElementById("xp2").textContent=state.xp;
+ const level=Math.floor(state.xp/100)+1;document.getElementById("level").textContent="Level "+level;document.getElementById("level2").textContent=level;
+ document.getElementById("answered").textContent=state.answered;document.getElementById("correct").textContent=state.correct;document.getElementById("streak").textContent=state.streak;
+ const pct=Math.min(100,state.xp%100);document.getElementById("pct").textContent=pct+"%";document.getElementById("bar").style.width=pct+"%";
+ document.getElementById("mastery").innerHTML=Object.entries(data).map(([s,d])=>{let n=state.mastery[s]||0;let p=Math.min(100,n*10);return `<div style="margin:12px 0"><div class="row"><span>${d.icon} ${s}</span><span>${n} correct</span></div><div class="progress" style="margin-top:7px"><i style="width:${p}%"></i></div></div>`}).join("");
+}
+function show(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===id));if(id==="flashcards")renderCard();updateUI()}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>show(t.dataset.view));
+document.getElementById("subjects").innerHTML=Object.entries(data).map(([s,d])=>`<button class="subject" onclick="startQuiz('${s.replaceAll("'","\\'")}')"><span style="font-size:26px">${d.icon}</span><b>${s}</b><small>Explore & challenge</small></button>`).join("");
+function newFact(){let all=Object.entries(data);let [s,d]=all[Math.floor(Math.random()*all.length)];document.getElementById("fact").innerHTML=`<b>${d.icon} ${s}</b><div style="margin-top:5px">${d.facts[Math.floor(Math.random()*d.facts.length)]}</div>`}
+function startQuiz(s=currentSubject){currentSubject=s;show("quiz");qIndex=Math.floor(Math.random()*data[s].qs.length);renderQuestion()}
+function renderQuestion(){let q=data[currentSubject].qs[qIndex];document.getElementById("quizTag").textContent=currentSubject.toUpperCase();document.getElementById("qnum").textContent=state.answered+1;document.getElementById("question").textContent=q[0];let opts=[q[1],...q[2]].sort(()=>Math.random()-.5);document.getElementById("answers").innerHTML=opts.map(o=>`<button class="answer" onclick="answer(this,${JSON.stringify(o)===JSON.stringify(q[1])})">${o}</button>`).join("");document.getElementById("feedback").innerHTML="";document.getElementById("next").classList.add("hidden")}
+function answer(btn,correct){document.querySelectorAll(".answer").forEach(b=>b.disabled=true);state.answered++;if(correct){state.correct++;state.xp+=10;state.mastery[currentSubject]=(state.mastery[currentSubject]||0)+1;btn.classList.add("good");document.getElementById("feedback").innerHTML=`<div class="feedback good"><b>Correct ⚡</b><br>${data[currentSubject].qs[qIndex][3]}</div>`}else{state.xp+=2;btn.classList.add("bad");let q=data[currentSubject].qs[qIndex];document.getElementById("feedback").innerHTML=`<div class="feedback bad"><b>Not quite.</b><br>The answer is <b>${q[1]}</b>. ${q[3]}</div>`}save();document.getElementById("next").classList.remove("hidden")}
+function nextQuestion(){qIndex=(qIndex+1)%data[currentSubject].qs.length;renderQuestion()}
+const cards=Object.entries(data).flatMap(([s,d])=>d.qs.map(q=>({s,front:q[0],back:q[1]+" — "+q[3]})));
+function renderCard(){let c=cards[flashIndex%cards.length];document.getElementById("fcTag").textContent=c.s.toUpperCase();document.getElementById("fcFront").textContent=flipped?c.back:c.front;document.querySelector("#flash .small").textContent=flipped?"Tap to see question":"Tap to reveal answer"}
+function flipCard(){flipped=!flipped;renderCard()}function nextCard(){flipped=false;flashIndex=(flashIndex+1)%cards.length;renderCard()}function prevCard(){flipped=false;flashIndex=(flashIndex-1+cards.length)%cards.length;renderCard()}function shuffleCard(){flashIndex=Math.floor(Math.random()*cards.length);flipped=false;renderCard()}
+function startRapid(){if(rapidTimer)return;rapidLeft=60;document.getElementById("rapidArea").classList.remove("hidden");rapidQuestion();rapidTimer=setInterval(()=>{rapidLeft--;document.getElementById("rapidTime").textContent=rapidLeft;if(rapidLeft<=0){clearInterval(rapidTimer);rapidTimer=null;document.getElementById("rapidArea").innerHTML="<b>Time!</b> Come back when you're ready for another run."}},1000)}
+function rapidQuestion(){let ss=Object.keys(data);let s=ss[Math.floor(Math.random()*ss.length)],q=data[s].qs[Math.floor(Math.random()*data[s].qs.length)];let opts=[q[1],...q[2]].sort(()=>Math.random()-.5);document.getElementById("rapidArea").innerHTML=`<div class="card"><div class="row"><span class="small">${s}</span><b>⏱ <span id="rapidTime">${rapidLeft}</span></b></div><div class="q">${q[0]}</div><div class="answers">${opts.map(o=>`<button class="answer" onclick="rapidAnswer(this,${JSON.stringify(o)===JSON.stringify(q[1])})">${o}</button>`).join("")}</div></div>`}
+function rapidAnswer(btn,c){if(!rapidTimer)return;document.querySelectorAll("#rapidArea .answer").forEach(b=>b.disabled=true);if(c){btn.classList.add("good");state.xp+=5;state.correct++;state.answered++;save()}setTimeout(rapidQuestion,350)}
+function startElements(){let names=[...elements];elementCurrent=names[Math.floor(Math.random()*names.length)];let others=names.filter(x=>x!==elementCurrent).sort(()=>Math.random()-.5).slice(0,3);let opts=[elementCurrent,...others].sort(()=>Math.random()-.5);document.getElementById("elementArea").innerHTML=`<div class="card"><div class="q">What is the symbol for <b>${elementCurrent[0]}</b>?</div><div class="answers">${opts.map(o=>`<button class="answer" onclick="elementAnswer(this,${o[1]===elementCurrent[1]})">${o[1]}</button>`).join("")}</div></div>`}
+function elementAnswer(btn,c){document.querySelectorAll("#elementArea .answer").forEach(b=>b.disabled=true);if(c){btn.classList.add("good");state.xp+=10;state.correct++;state.answered++;}else{btn.classList.add("bad");state.xp+=2;state.answered++;}save();setTimeout(startElements,600)}
+newFact();updateUI();
+</script>
+</body>
+</html>
